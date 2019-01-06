@@ -6,6 +6,7 @@ from widgets.main import Button, render_widgets, handle_widgets
 from classes import *
 import time
 import tkinter as tk
+from PIL import Image, ImageTk
 
 def start():
     global maze
