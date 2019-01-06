@@ -1,7 +1,6 @@
 from tkinter import *
 from main import main_menu
 from files_functions import save_to_json, load_json, load_passwords, save_passwords
-from classes import const
 
 Tf = ("Arial Rounded MT Bold", 20)
 Bf = ("Arial Rounded MT Bold", 15)

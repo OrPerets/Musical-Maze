@@ -88,7 +88,8 @@ class Activity(object):
     def __init__(self, maze, sound):
         self.x = 0
         self.y = 0
-        
+
+        self.wrong_moves = 0
         self.path = None
         self.solved_path = []
         self.reverse = 0
@@ -117,8 +118,6 @@ class Activity(object):
             if self.reverse == 0:
                 self.solved_path.reverse()
                 self.reverse = 1
-            #for id, c in enumerate(self.solved_path):
-                    #moves.append(PositionWithBackground(((c.x * const.wc), (c.y * const.hc)), const.yellow))
 
         moves.reverse()
         for c in moves:
@@ -140,21 +139,33 @@ class Activity(object):
                 next_position = ((self.x+1)*const.wc, position[1])
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+                else:
+                    self.sound.play_error_note()
+                    self.wrong_moves += 1
                 self.x += 1
             if dir == const.left and self.x - 1 >= 0:
                 next_position = ((self.x-1) * const.wc, position[1])
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+                else:
+                    self.sound.play_error_note()
+                    self.wrong_moves += 1
                 self.x -= 1
             if dir == const.up and self.y - 1 >= 0:
                 next_position = (position[0], (self.y-1) * const.hc)
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+                else:
+                    self.sound.play_error_note()
+                    self.wrong_moves += 1
                 self.y -= 1
             if dir == const.down and self.y + 1 < self.maze.h:
                 next_position = (position[0], (self.y+1) * const.hc)
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+                else:
+                    self.sound.play_error_note()
+                    self.wrong_moves += 1
                 self.y += 1
                 
             self.rect_img[0], self.rect_img[1] = (self.x * const.wc), (self.y * const.hc)
@@ -377,6 +388,7 @@ class Sound(object):
         self.dur = dur
         self.left_dur = dur.copy()
         self.index = 0
+        self.error_note = 100
 
     def get_notes_by_index(self):
         return self.notes[:self.index], self.dur[:self.index]
@@ -402,3 +414,11 @@ class Sound(object):
         if not len(self.left_notes):
             return None, None
         return self.left_notes.pop(0), self.left_dur.pop(0)
+
+    def play_error_note(self):
+        play(self.error_note)
+
+    def play_hint(self):
+        if self.index < len(self.notes) - 1:
+            play(self.left_notes[0])
+            sleep(self.left_dur[0])

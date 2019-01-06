@@ -38,6 +38,8 @@ def start():
     def play_all():
         sound.play_all()
 
+    def play_hint():
+        sound.play_hint()
 
     def clicked_no():
         global popup
@@ -77,6 +79,10 @@ def start():
                               bg='lightyellow', command=clicked_no).pack(side=tk.LEFT)
 
         popup.mainloop()
+
+    def save_user_data(activity, start_time):
+        pass
+
     # Pygame initialize variable
     init()
     width, height = 640, 480
@@ -109,6 +115,11 @@ def start():
                               height=60, bordercolor=const.black,
                               colour=const.light_blue, fontsize=20, target=play_all)
         all_button.place((515, 275))
+
+        hint_button = Button(window, text="Hint", width=100,
+                            height=60, bordercolor=const.black,
+                            colour=const.light_blue, fontsize=20, target=play_hint)
+        hint_button.place((515, 365))
 
     act_time = 0
 
@@ -181,27 +192,6 @@ def start():
 
         # game over
         if activity.x == activity.maze.w - 1 and activity.y == activity.maze.h - 1:
+            save_user_data(activity, start_time)
             ask_user_for_another_game()
-            # '''
-            # need to save:
-            # time, user, moves, stuck in position
-            # '''
-            # py_time.delay(300)
-            # size = mode["level"]
-            # maze = Maze(size[0], size[1])
-            # maze.generate_maze()
-            # activity = Activity(maze, activity.sound)
-            # if mode["mode"] == "a-star":
-            #     solve()
-            #
-            # '''
-            # For next step:
-            # add here button to ask user for one more game
-            # '''
-            #
-            # window.fill(const.gray)
-            # activity.show(window)
-            # render_widgets()
-            # display.flip()
-            # start_time = time.time()
 
