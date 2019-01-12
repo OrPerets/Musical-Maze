@@ -4,9 +4,9 @@ from pygame.locals import *
 import pygameMenu
 from pygameMenu.locals import *
 from game import start
-from classes import mode, const
+from classes import game_data, const
 
-def main_menu():
+def main_menu(current_user):
     FPS = 60
     W_SIZE = 800
     H_SIZE = 550
@@ -20,16 +20,22 @@ def main_menu():
     pygame.display.set_caption('Musical Maze')
     clock = pygame.time.Clock()
 
+    game_data["user"] = current_user
     def main_menu_background():
         surface.fill(const.light_blue)
 
+    def set_game_walls(c, **kargs):
+        game_data["walls"] = c
+        if kargs['write_on_console']:
+            print("Mode:", c)
+
     def set_game_mode(c, **kargs):
-        mode["mode"] = c
+        game_data["mode"] = c
         if kargs['write_on_console']:
             print("Mode:", c)
 
     def set_game_level(c, **kargs):
-        mode["level"] = c
+        game_data["level"] = c
         if kargs['write_on_console']:
             print("level:", c)
 
@@ -65,6 +71,16 @@ def main_menu():
                                     ('4', (15, 15)),
                                     ('5', (20, 18))],
                                    onchange=set_game_level,
+                                   onreturn=None,
+                                   default=0,
+                                   write_on_console=False
+                                   )
+
+    # option for walls to without walls
+    game_options_menu.add_selector('Walls',
+                                   [('Yes', True),
+                                    ('No', False)],
+                                   onchange=set_game_walls,
                                    onreturn=None,
                                    default=0,
                                    write_on_console=False
