@@ -7,10 +7,13 @@ from classes import *
 import time
 import tkinter as tk
 
+from sounds import little_jonathan as lj
+
 def start():
     global maze
     global activity
     global popup
+    global current_user
 
     def solve():
         global activity
@@ -38,6 +41,8 @@ def start():
     def play_all():
         sound.play_all()
 
+    def play_hint():
+        sound.play_hint()
 
     def clicked_no():
         global popup
@@ -49,7 +54,7 @@ def start():
         global activity
         global popup
         py_time.delay(300)
-        size = mode["level"]
+        size = game_data["level"]
         maze = Maze(size[0], size[1])
         maze.generate_maze()
         activity = Activity(maze, activity.sound)
@@ -58,7 +63,7 @@ def start():
         add here button to ask user for one more game
         '''
         window.fill(const.gray)
-        activity.show(window)
+        activity.show(window, walls=game_data["walls"])
         render_widgets()
         display.flip()
         popup.destroy()
@@ -66,17 +71,22 @@ def start():
     def ask_user_for_another_game():
         global popup
         popup = tk.Tk()
-        center_window()
-        popup.configure(background='lightblue')
-        tk.Label(popup, text="Another game?", font=("Arial", 18), bg='lightblue').pack()
+        center_window(380, 480)
+        img = tk.PhotoImage(file="images/logo.png")
+        tk.Label(popup, image=img).pack()
+        tk.Label(popup, text="Another game?", font=("Arial", 22)).pack()
         buttons = tk.Frame(popup)
         buttons.pack()
-        yes_button = tk.Button(buttons, text="Yes", width=12, height=3, font=("Arial", 14),
+        tk.Button(buttons, text="Yes", width=10, height=3, font=("Arial", 18),
                                bg='lightyellow', command=clicked_yes).pack(side=tk.LEFT)
-        no_button = tk.Button(buttons, text="No", width=12, height=3, font=("Arial", 14),
+        tk.Button(buttons, text="No", width=10, height=3, font=("Arial", 18),
                               bg='lightyellow', command=clicked_no).pack(side=tk.LEFT)
 
         popup.mainloop()
+
+    def save_user_data(activity, start_time):
+        pass
+
     # Pygame initialize variable
     init()
     width, height = 640, 480
@@ -84,17 +94,23 @@ def start():
     display.set_caption("Musical Maze")
 
     # Game
-    size = mode["level"]
+    size = game_data["level"]
     maze = Maze(size[0], size[1])
     maze.generate_maze()
 
-    notes =[67,64,64,65,62,62,60,62,64,65,67,67,67,67,64,64,65,62,62,60,64,67,67,60]
-    dur = [0.25,0.25,0.5,0.25,0.25,0.5,0.25,0.25,0.25,0.25,0.25,0.25,0.5,0.25,0.25,0.5,0.25,0.25,0.5,0.25,0.25,0.25,0.25,1]
+
+    notes = lj.notes
+    dur = lj.dur
     sound = Sound(notes, dur)
     activity = Activity(maze, sound)
 
+    '''
+    PROBLEM:
+    Maze size is not match to notes size. 
+    '''
+
     # Display "solve" button for user
-    if mode["mode"] == 'user':
+    if game_data["mode"] == 'user':
         play_button = Button(window, text="Play", width=100,
                               height=60, bordercolor=const.black,
                               colour=const.light_blue, fontsize=20, target=play_to_index)
@@ -110,6 +126,11 @@ def start():
                               colour=const.light_blue, fontsize=20, target=play_all)
         all_button.place((515, 275))
 
+        hint_button = Button(window, text="Hint", width=100,
+                            height=60, bordercolor=const.black,
+                            colour=const.light_blue, fontsize=20, target=play_hint)
+        hint_button.place((515, 365))
+
     act_time = 0
 
     display.flip()
@@ -119,13 +140,13 @@ def start():
         Joy = joystick.Joystick(0)
         Joy.init()
 
-    if mode["mode"] == "a-star":
+    if game_data["mode"] == "a-star":
         solve()
 
     start_time = time.time()
     # Main loop
     while True:
-        py_time.Clock().tick(20)
+        py_time.Clock().tick(13)
         window.fill(const.gray)
         for event in handle_widgets():
             if event.type == QUIT:
@@ -175,33 +196,12 @@ def start():
             act_time = py_time.get_ticks()
             activity.poll()
 
-        activity.show(window)
+        activity.show(window, walls=game_data["walls"])
         render_widgets()
         display.flip()
 
         # game over
         if activity.x == activity.maze.w - 1 and activity.y == activity.maze.h - 1:
+            save_user_data(activity, start_time)
             ask_user_for_another_game()
-            # '''
-            # need to save:
-            # time, user, moves, stuck in position
-            # '''
-            # py_time.delay(300)
-            # size = mode["level"]
-            # maze = Maze(size[0], size[1])
-            # maze.generate_maze()
-            # activity = Activity(maze, activity.sound)
-            # if mode["mode"] == "a-star":
-            #     solve()
-            #
-            # '''
-            # For next step:
-            # add here button to ask user for one more game
-            # '''
-            #
-            # window.fill(const.gray)
-            # activity.show(window)
-            # render_widgets()
-            # display.flip()
-            # start_time = time.time()
 
