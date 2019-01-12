@@ -2,6 +2,7 @@ from tkinter import *
 from main import main_menu
 from files_functions import save_to_json, load_json, load_passwords, save_passwords
 
+
 Tf = ("Arial Rounded MT Bold", 20)
 Bf = ("Arial Rounded MT Bold", 15)
 Rf = ("Arial Rounded MT", 12)
@@ -9,6 +10,7 @@ Txf = ("Arial", 10)
 
 users = load_json("users")
 passwords = load_passwords()
+current_user = None
 
 def create_user(name, username, password, age, gender, knowledge):
     return {
@@ -152,12 +154,13 @@ def check():
 def dcheck():
     global e
     global f
+    global current_user
     e = dunameentry.get()
     f = dpassentry.get()
 
     if passwords[e] == f:
         rootd.destroy()
-        success()
+        main_menu(e)
 
     else:
         rootd.destroy()
@@ -222,15 +225,14 @@ def dlogin():
     rootd.mainloop()
 
 
-def success():
+def success(current_user):
     global roottestc
     global unameentry
     rootc = Tk()
-    #const.current = unameentry.get()
     rootc.title("Successful Login")
     suclabel = Label(rootc, text="Successful Login", font=Tf).grid(row=0, columnspan=2)
     labelsucc = Label(rootc, text="Enjoy!", font=Tf).grid(row=1, columnspan=2)
-    regb = Button(height=1, width=10, text="Home", relief='raised', font=Bf, fg='#1A4191', command=lambda: main_menu()).grid(
+    regb = Button(height=1, width=10, text="Home", relief='raised', font=Bf, fg='#1A4191', command=lambda: main_menu(current_user)).grid(
         row=2, columnspan=2)
 
 

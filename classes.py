@@ -10,6 +10,13 @@ from psonic import *
 def distance(p1, p2):
     return sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
+def convert_states_to_tuples(states):
+    result = []
+
+    for state in states:
+        result.append(state.location)
+
+    return result
 
 class Constant(object):
     def __getattr__(self, attr):
@@ -57,13 +64,13 @@ const.time_poll = 75
 const.file_name = "DB/players_data.json"
 const.users = "DB/users.json"
 const.passwords = "DB/passwords.json"
-const.current = None
 
-mode = {
+game_data = {
     "mode": "user",
-    "level": (5,5)
+    "level": (5,5),
+    "walls": True,
+    "user": None
 }
-
 
 class Point(object):
     def __init__(self, xy):
@@ -94,6 +101,7 @@ class Activity(object):
         self.solved_path = []
         self.reverse = 0
         self.sound = sound
+        self.backtrace = []
         self.maze = maze
         # user moves
         self.moves = [(0,0)]
@@ -112,7 +120,7 @@ class Activity(object):
         maze = copy.deepcopy(self.maze)
         return Activity(maze, self.sound)
 
-    def show(self, screen):
+    def show(self, screen, walls=True):
         moves = []
         if self.solved_path:
             if self.reverse == 0:
@@ -126,7 +134,8 @@ class Activity(object):
         screen.blit(self.start_pos.surf, self.start_pos.pos)
         screen.blit(self.end_pos.surf, self.end_pos.pos)
         screen.blit(self.img, self.rect_img)
-        self.maze.show(screen)
+        if walls:
+            self.maze.show(screen)
 
     def move(self, dir):
         if self.c_path is None:
@@ -139,6 +148,10 @@ class Activity(object):
                 next_position = ((self.x+1)*const.wc, position[1])
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+
+                elif next_position in self.backtrace:
+                    self.play_return_to_path_sound()
+
                 else:
                     self.sound.play_error_note()
                     self.wrong_moves += 1
@@ -147,6 +160,10 @@ class Activity(object):
                 next_position = ((self.x-1) * const.wc, position[1])
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+
+                elif next_position in self.backtrace:
+                    self.play_return_to_path_sound()
+
                 else:
                     self.sound.play_error_note()
                     self.wrong_moves += 1
@@ -155,6 +172,10 @@ class Activity(object):
                 next_position = (position[0], (self.y-1) * const.hc)
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+
+                elif next_position in self.backtrace:
+                    self.play_return_to_path_sound()
+
                 else:
                     self.sound.play_error_note()
                     self.wrong_moves += 1
@@ -163,6 +184,10 @@ class Activity(object):
                 next_position = (position[0], (self.y+1) * const.hc)
                 if next_position == self.c_path[0].location:
                     self.play_note_and_update_variables()
+
+                elif next_position in self.backtrace:
+                    self.play_return_to_path_sound()
+
                 else:
                     self.sound.play_error_note()
                     self.wrong_moves += 1
@@ -171,13 +196,18 @@ class Activity(object):
             self.rect_img[0], self.rect_img[1] = (self.x * const.wc), (self.y * const.hc)
             self.moves.append((self.x * const.wc,self.y * const.hc))
 
+        else: # get a wall
+            self.sound.play_wall_note()
 
     def play_note_and_update_variables(self):
         note, dur = self.sound.get_next_note()
         if note is not None:
             self.sound.play_single_note(note, dur)
-            self.c_path.pop(0)
+            self.backtrace.append(self.c_path.pop(0).location)
             self.sound.index += 1
+
+    def play_return_to_path_sound(self):
+        self.sound.back_to_path()
 
     def astar(self, destination):
         dest = Point(destination)
@@ -296,7 +326,9 @@ class Maze(object):
         
         self.sx = sx
         self.sy = sy
-        
+
+        self.solution_size = 0
+
         for v in range(self.w * self.h):
             a = State()
             a.x = v % self.w
@@ -321,14 +353,13 @@ class Maze(object):
         if x == -1:
             x = randint(0, self.w - 1)
             y = randint(0, self.h - 1)
-            
+
         cell_act = self.get_cell(x, y)
-        
+
         if not cell_act.state:
             cell_act.state = True
-            
             tab = []
-            
+
             if x + 1 < self.w and not self.get_cell(x + 1, y).state:
                 tab.append((x + 1, y, const.right))
             if x - 1 >= 0 and not self.get_cell(x - 1, y).state:
@@ -337,6 +368,7 @@ class Maze(object):
                 tab.append((x, y + 1, const.down))
             if y - 1 >= 0 and not self.get_cell(x, y - 1).state:
                 tab.append((x, y - 1, const.up))
+
 
             if tab:
                 while tab:
@@ -348,6 +380,7 @@ class Maze(object):
                         self.generate_maze(C[0], C[1])
                     else:
                         tab.remove(C)
+
                     
     def show(self, screen):
         w, h = self.wc, self.hc
@@ -389,6 +422,8 @@ class Sound(object):
         self.left_dur = dur.copy()
         self.index = 0
         self.error_note = 100
+        self.wall_note = 40
+        self.backtrace_note = 80
 
     def get_notes_by_index(self):
         return self.notes[:self.index], self.dur[:self.index]
@@ -396,18 +431,13 @@ class Sound(object):
     def get_notes(self):
         return self.notes, self.dur
 
-    def play(self, notes, dur):
-        for i in range(len(notes)):
-            play(notes[i])
-            sleep(dur[i])
-
     def play_all(self):
         for i in range(len(self.notes)):
             play(self.notes[i])
             sleep(self.dur[i])
 
-    def play_single_note(self, note, dur):
-        play(note)
+    def play_single_note(self, note, dur, pan=0):
+        play(note, pan=pan)
         sleep(dur)
 
     def get_next_note(self):
@@ -418,7 +448,13 @@ class Sound(object):
     def play_error_note(self):
         play(self.error_note)
 
-    def play_hint(self):
+    def play_hint(self, pan=0):
         if self.index < len(self.notes) - 1:
-            play(self.left_notes[0])
+            play(self.left_notes[0], pan=pan)
             sleep(self.left_dur[0])
+
+    def play_wall_note(self):
+        play(self.wall_note)
+
+    def back_to_path(self):
+        play(self.backtrace_note)
