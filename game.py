@@ -2,11 +2,12 @@ from pygame import init, display, key, quit, joystick
 from sys import exit
 from pygame.locals import *
 from pygame import time as py_time
+from files_functions import save_to_json
 from widgets.main import Button, render_widgets, handle_widgets
 from classes import *
 import time
-import tkinter as tk
 
+# sounds
 from sounds import little_jonathan as lj
 
 def start():
@@ -36,7 +37,12 @@ def start():
         sound.play_hint()
 
     def save_user_data(activity, start_time):
-        pass
+        user_data = {
+            "activity": activity.serialize(),
+            "time": time.time() - start_time
+        }
+        save_to_json(user_data, "players")
+
 
     # Pygame initialize variable
     init()

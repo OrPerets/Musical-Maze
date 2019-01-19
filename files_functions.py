@@ -23,7 +23,7 @@ def write_list_to_file(list, dest):
     if dest == "users":
         path = const.users
     else:
-        path = const.file_name
+        path = const.players_data
     with open(path, 'w') as file:
         json.dump(list, file)
 
@@ -32,7 +32,7 @@ def load_json(src):
     if src == "users":
         path = const.users
     else:
-        path = const.file_name
+        path = const.players_data
     try:
         with open(path, 'r') as file:
             data = json.load(file)
@@ -45,7 +45,7 @@ def save_to_json(raw_data, dest):
     if dest == "users":
         path = const.users
     else:
-        path = const.file_name
+        path = const.players_data
 
     if not os.path.isfile(path):
         write_list_to_file([raw_data], dest)

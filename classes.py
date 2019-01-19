@@ -61,7 +61,7 @@ const.hc = 25
 
 # Others
 const.time_poll = 75
-const.file_name = "DB/players_data.json"
+const.players_data = "DB/players_data.json"
 const.users = "DB/users.json"
 const.passwords = "DB/passwords.json"
 
@@ -314,6 +314,12 @@ class Activity(object):
         copied.astar(((copied.maze.w - 1), (copied.maze.h - 1)))
         copied.get_astar((copied.x, copied.y), ((copied.maze.w - 1), (copied.maze.h - 1)))
         return copied.solved_path
+
+    def serialize(self):
+        return {
+            "wrong_moves":self.wrong_moves,
+            "moves":self.moves
+        }
         
 class Maze(object):
     def __init__(self, w=25, h=30, sx=0, sy=0):

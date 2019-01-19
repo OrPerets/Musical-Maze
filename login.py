@@ -236,7 +236,6 @@ def success(current_user):
         row=2, columnspan=2)
 
 
-
 def failed():
     global rootc
     rootc = Tk()
