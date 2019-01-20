@@ -1,7 +1,8 @@
 from tkinter import *
 from main import main_menu
 from files_functions import save_to_json, load_json, load_passwords, save_passwords
-
+from flask import Flask
+app = Flask(__name__)
 
 Tf = ("Arial Rounded MT Bold", 20)
 Bf = ("Arial Rounded MT Bold", 15)
@@ -31,7 +32,7 @@ def center_window(width=300, height=200):
     y = (screen_height/2) - (height/2)
     root.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
-
+@app.route('/')
 def home():
     global roota
 
