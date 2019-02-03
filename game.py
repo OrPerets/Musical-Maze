@@ -6,9 +6,12 @@ from files_functions import save_to_json
 from widgets.main import Button, render_widgets, handle_widgets
 from classes import *
 import time
+import tkinter as tk
+from tkinter import messagebox as mb
 
 # sounds
 from sounds import little_jonathan as lj
+from sounds import abc
 
 def start():
     global maze
@@ -43,6 +46,23 @@ def start():
         }
         save_to_json(user_data, "players")
 
+    def ask_user_for_another_game():
+        root = tk.Tk()
+        root.withdraw()
+        MsgBox = mb.askquestion('Another game?', 'Do you want to play again?',
+                                           icon='warning')
+        if MsgBox == 'no':
+            root.destroy()
+            return "no"
+        else:
+            return "yes"
+
+    def get_melody_game(index):
+        if index == 1:
+            return lj.notes, lj.dur
+
+        elif index == 2:
+            return abc.notes, abc.dur
 
     # Pygame initialize variable
     init()
@@ -56,8 +76,8 @@ def start():
     maze.generate_maze()
 
 
-    notes = lj.notes
-    dur = lj.dur
+    notes, dur = get_melody_game(game_data["melody"])
+
     sound = Sound(notes, dur)
     activity = Activity(maze, sound)
 
@@ -159,15 +179,20 @@ def start():
 
         # game over
         if activity.x == activity.maze.w - 1 and activity.y == activity.maze.h - 1:
+            activity.sound.play_win()
+            user_ans = ask_user_for_another_game()
             save_user_data(activity, start_time)
-            py_time.delay(300)
-            size = game_data["level"]
-            maze = Maze(size[0], size[1])
-            maze.generate_maze()
-            sound = Sound(lj.notes, lj.dur)
-            activity = Activity(maze, sound)
-            window.fill(const.gray)
-            activity.show(window, walls=game_data["walls"])
-            render_widgets()
-            display.flip()
+            if user_ans == 'yes':
+                py_time.delay(300)
+                size = game_data["level"]
+                maze = Maze(size[0], size[1])
+                maze.generate_maze()
+                sound = Sound(lj.notes, lj.dur)
+                activity = Activity(maze, sound)
+                window.fill(const.gray)
+                activity.show(window, walls=game_data["walls"])
+                render_widgets()
+                display.flip()
 
+            else:
+                break

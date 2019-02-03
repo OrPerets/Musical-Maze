@@ -11,6 +11,8 @@ def main_menu(current_user):
     W_SIZE = 800
     H_SIZE = 550
 
+    melodies = [('Little Jonathan', 1), ('ABC', 2)]
+
     # init pygame
     pygame.init()
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -36,6 +38,11 @@ def main_menu(current_user):
 
     def set_game_level(c, **kargs):
         game_data["level"] = c
+        if kargs['write_on_console']:
+            print("level:", c)
+
+    def set_game_melody(c, **kargs):
+        game_data["melody"] = c
         if kargs['write_on_console']:
             print("level:", c)
 
@@ -85,7 +92,15 @@ def main_menu(current_user):
                                    default=0,
                                    write_on_console=False
                                    )
-    game_options_menu.add_option('Return to Menu', PYGAME_MENU_BACK)
+
+    game_options_menu.add_selector('Melody',
+                                   melodies,
+                                   onchange=set_game_melody,
+                                   onreturn=None,
+                                   default=0,
+                                   write_on_console=False
+                                   )
+    game_options_menu.add_option('Start Game', start)
 
     # About menu
     about_menu = pygameMenu.TextMenu(surface,
@@ -119,7 +134,6 @@ def main_menu(current_user):
                            )
 
     menu.add_option(game_options_menu.get_title(), game_options_menu)
-    menu.add_option('Start Game', start)
     menu.add_option(about_menu.get_title(), about_menu)
     menu.add_option('Exit', PYGAME_MENU_EXIT)
 

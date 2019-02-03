@@ -64,12 +64,17 @@ const.time_poll = 75
 const.players_data = "DB/players_data.json"
 const.users = "DB/users.json"
 const.passwords = "DB/passwords.json"
+const.melodies_map = {
+    1: "little_jonathan",
+    2: "abc"
+}
 
 game_data = {
     "mode": "user",
     "level": (5,5),
     "walls": True,
-    "user": None
+    "user": None,
+    "melody": None
 }
 
 class Point(object):
@@ -427,8 +432,6 @@ class Sound(object):
         self.dur = dur
         self.left_dur = dur.copy()
         self.index = 0
-        self.error_note = 100
-        self.wall_note = 40
         self.backtrace_note = 80
 
     def get_notes_by_index(self):
@@ -452,7 +455,10 @@ class Sound(object):
         return self.left_notes.pop(0), self.left_dur.pop(0)
 
     def play_error_note(self):
-        play(self.error_note)
+        use_synth(SAW)
+        for i in range(60, 47, -1):
+            play(i, amp=0.3)
+            sleep(0.08)
 
     def play_hint(self, pan=0):
         if self.index < len(self.notes) - 1:
@@ -460,7 +466,13 @@ class Sound(object):
             sleep(self.left_dur[0])
 
     def play_wall_note(self):
-        play(self.wall_note)
+        play(chord(E3, MAJOR))
+        sleep(1)
 
     def back_to_path(self):
-        play(self.backtrace_note)
+        play(self.notes[self.index-1])
+
+    def play_win(self):
+        for i in range(1, 12):
+            sample(DRUM_SNARE_SOFT, rate=i, amp=i / 10)
+            sleep(0.125)
